@@ -3,6 +3,8 @@
  */
 
 #include "mpi_util.h"
+#include "MT.h"
+#include <time.h>
 
 /*
  * init buffer
@@ -41,20 +43,40 @@ static void freeBuf(int numprocs, double** buf){
 	}
 }
 
+static void shuffleRank(int n,int* a){
+	init_genrand((unsigned)time(NULL));
+	for(int i = n-1; i > 0; i--){
+		int j = genrand_int32() % (i+1);
+		int t = a[i];
+		a[i] = a[j];
+		a[j] = t;
+	}
+}
+
 /*
  * commumicate and measure time
  */
-static double* doCommunicate(MPI_Comm comm,int numprocs,int myid,int dataSize,double** sendbuf,double** recvbuf,double* timearr){
+static int doCommunicate(MPI_Comm comm,int numprocs,int myid,int dataSize,double** sendbuf,double** recvbuf,double* timearr){
 	MPI_Request *sendreq,*recvreq;
 	sendreq = (MPI_Request*)malloc(numprocs*sizeof(MPI_Request));
 	if(sendreq == NULL){
-		return NULL;
+		return -1;
 	}
 	recvreq = (MPI_Request*)malloc(numprocs*sizeof(MPI_Request));
 	if(recvreq == NULL){
 		free(sendreq);
-		return NULL;
+		return -1;
 	}
+	int* rank = (int*)malloc(numprocs*sizeof(int));
+	if(rank == NULL){
+		free(recvreq);
+		free(sendreq);
+		return -1;
+	}
+	for(int i = 0; i < numprocs; i++){
+		rank[i] = i;
+	}
+	shuffleRank(numprocs,rank);
 
 	// prepost irecv
 	for(int i = 0; i < numprocs; i++){
@@ -64,12 +86,13 @@ static double* doCommunicate(MPI_Comm comm,int numprocs,int myid,int dataSize,do
 	}
 	MPI_Barrier(comm);
 	for(int i = 0; i < numprocs; i++){
-		if(i != myid){
+		int i2 = rank[i];
+		if(i2 != myid){
 			double t1 = timer();
-			MPI_Isend(sendbuf[i],dataSize,MPI_DOUBLE,i,0,comm,&sendreq[i]);
-			MPI_Wait(&sendreq[i],NULL);		
+			MPI_Isend(sendbuf[i2],dataSize,MPI_DOUBLE,i2,0,comm,&sendreq[i2]);
+			MPI_Wait(&sendreq[i2],NULL);		
 			double t2 = timer();
-			timearr[i] = getSpan(t1,t2);
+			timearr[i2] = getSpan(t1,t2);
 		}
 	}
 
@@ -78,8 +101,10 @@ static double* doCommunicate(MPI_Comm comm,int numprocs,int myid,int dataSize,do
 			MPI_Wait(&recvreq[i],NULL);
 		}
 	}
+	free(rank);
 	free(sendreq);
 	free(recvreq);
+	return 0;
 }
 
 /*
@@ -120,7 +145,11 @@ int calcDistance(MPI_Comm comm,int numprocs,int myid,int dataSize,int repTimes,d
 	}
 	
 	for(int i = 0; i < repTimes; i++){
-		doCommunicate(comm,numprocs,myid,dataSize,sendbuf,recvbuf,timearr_sub);
+		flag = doCommunicate(comm,numprocs,myid,dataSize,sendbuf,recvbuf,timearr_sub);
+		if(flag == -1){
+			end_stat = -1;
+			goto fine;
+		}
 		for(int j = 0; j < numprocs; j++){
 			timearr[j] += timearr_sub[j];
 		}
