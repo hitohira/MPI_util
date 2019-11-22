@@ -94,6 +94,9 @@ static int doCommunicate(MPI_Comm comm,int numprocs,int myid,int dataSize,double
 			double t2 = timer();
 			timearr[i2] = getSpan(t1,t2);
 		}
+		else{
+			timearr[i2] = 0;
+		}
 	}
 
 	for(int i = 0; i < numprocs; i++){
@@ -111,7 +114,8 @@ static int doCommunicate(MPI_Comm comm,int numprocs,int myid,int dataSize,double
  * calculate distance
  * if return value is -1, error occured
  */
-int calcDistance(MPI_Comm comm,int numprocs,int myid,int dataSize,int repTimes,double* timearr){
+int calcDistance(MPI_Comm comm,int dataSize,int repTimes,double* timearr){
+	int numprocs,myid;
 	int flag = 0;
 	double* timearr = NULL;
 	double* timearr_sub = NULL;
@@ -123,7 +127,15 @@ int calcDistance(MPI_Comm comm,int numprocs,int myid,int dataSize,int repTimes,d
 	if(!flag){
 		return -1;
 	}
-	
+
+	MPI_Comm_rank(comm,&myid);
+	MPI_Comm_size(comm,&numprocs);
+
+	timearr = (double*)malloc(numprocs*sizeof(double));
+	if(timearr == NULL){
+		end_stat = -1;
+		goto fine;
+	}
 	sendbuf = initBuf(numprocs,dataSize,&flag);
 	if(flag == -1) {
 		end_stat = -1;
@@ -136,7 +148,7 @@ int calcDistance(MPI_Comm comm,int numprocs,int myid,int dataSize,int repTimes,d
 	}
 	timearr_sub = (double*)malloc(numprocs * sizeof(double));
 	if(timearr_sub == NULL){
-		end_stat == -1;
+		end_stat = -1;
 		goto fine;
 	}
 
@@ -159,7 +171,7 @@ int calcDistance(MPI_Comm comm,int numprocs,int myid,int dataSize,int repTimes,d
 	}
 
 fine:
-	if(timearr_sub != NULL) free(timearr_sub);
+	if(timearr_sub) free(timearr_sub);
 	freeBuf(numprocs,recvbuf);
 	freeBuf(numprocs,sendbuf);
 	return end_stat;
