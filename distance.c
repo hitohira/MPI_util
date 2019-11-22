@@ -113,6 +113,7 @@ static int doCommunicate(MPI_Comm comm,int numprocs,int myid,int dataSize,double
 /*
  * calculate distance
  * if return value is -1, error occured
+ * timearr[2*numproc] [average[numproc],variance[numproc]]
  */
 int calcDistance(MPI_Comm comm,int dataSize,int repTimes,double* timearr){
 	int numprocs,myid;
@@ -131,7 +132,7 @@ int calcDistance(MPI_Comm comm,int dataSize,int repTimes,double* timearr){
 	MPI_Comm_rank(comm,&myid);
 	MPI_Comm_size(comm,&numprocs);
 
-	timearr = (double*)malloc(numprocs*sizeof(double));
+	timearr = (double*)malloc(2*numprocs*sizeof(double));
 	if(timearr == NULL){
 		end_stat = -1;
 		goto fine;
@@ -152,7 +153,7 @@ int calcDistance(MPI_Comm comm,int dataSize,int repTimes,double* timearr){
 		goto fine;
 	}
 
-	for(int i = 0; i < numprocs; i++){
+	for(int i = 0; i < 2*numprocs; i++){
 		timearr[i] = 0.0;
 	}
 	
@@ -164,10 +165,12 @@ int calcDistance(MPI_Comm comm,int dataSize,int repTimes,double* timearr){
 		}
 		for(int j = 0; j < numprocs; j++){
 			timearr[j] += timearr_sub[j];
+			timearr[numprocs+j] += timearr_sub[j] * timearr_sub[j];
 		}
 	}
 	for(int i = 0; i < numprocs; i++){
 		timearr[j] /= repTimes;
+		timearr[numprocs+j] = timearr[numprocs+j] / repTimes - timearr[j];
 	}
 
 fine:

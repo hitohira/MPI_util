@@ -7,7 +7,13 @@ int main(int argc,char** argv){
 	
 	MPI_Comm_Rank(MPI_COMM_WORLD,&myid);
 
+	double t1 = timer();
+
 	showDistInfo(MPI_COMM_WORLD);
+
+	double t2 = timer();
+
+	printf("Total time : %.5f s\n",getSpan(t1,t2));
 
 	MPI_Finalize();
 	return 0;

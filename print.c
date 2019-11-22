@@ -2,14 +2,14 @@
 
 // nodeInfo[n], gitmearr[n*n]
 static void printData(int n,int dataSize,int repTimes,int* nodeInfo,double* gtimearr){
-	printf("Average of comm time\nData size : %d\nRepeat time : %d\n",dataSize,repTimes);
+	printf("Average and variance of comm time\nData size : %d\nRepeat time : %d\n",dataSize,repTimes);
 	printf("# of process: %d\n\n",n);
 	for(int i = 0; i < n; i++){
 		printf("process: %d\n",i);
 		printf("\tnode group: %d\n",nodeInfo[i]);
 		printf("\tcomm time\n");
 		for(int j = 0; j < n; j++){
-			printf("\t\t%d : %.4f\n",j,gtimearr[i*n+j]);
+			printf("\t\t%d : %.5f\t%.5f\n",j,gtimearr[2*i*n+j],gtimearr[(2*i+1)*n+j]);
 		}
 	}
 }
@@ -44,13 +44,13 @@ void showDistInfo(MPI_Comm comm){
 		goto fine;
 	}
 
-	gtimearr = (double*)malloc(numprocs*numprocs*sizeof(double));
+	gtimearr = (double*)malloc(2*numprocs*numprocs*sizeof(double));
 	if(gtimearr == -1){
 		fprintf(stderr,"mallc error\n");
 		goto fine;
 	}
 
-	MPI_Gather(timearr,numprocs,MPI_DOUBLE,gtimearr,numprocs,MPI_DOUBLE,0,comm);
+	MPI_Gather(timearr,2*numprocs,MPI_DOUBLE,gtimearr,2*numprocs,MPI_DOUBLE,0,comm);
 	
 	printData(numprocs,dataSize,repTimes,nodeInfo,gtimearr);
 
