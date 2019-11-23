@@ -1,7 +1,7 @@
 MAIN = main
 OBJS = main.o print.o distance.o split.o timer.o
 
-CC = gcc
+CC = mpicc
 CFLAGS = -O3 -xCORE-AVX2
 
 all: $(MAIN)
