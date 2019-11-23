@@ -15,4 +15,4 @@ $(MAIN): $(OBJS)
 
 .PHONY: clean
 clean:
-	rm $(PROGRAM) *.o
+	rm $(MAIN) *.o
