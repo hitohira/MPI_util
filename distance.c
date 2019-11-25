@@ -17,7 +17,7 @@ static double** initBuf(int numprocs,int dataSize,int* flag){
 	}
 	for(int i = 0; i < numprocs; i++){
 		buf[i] = NULL;
-		buf[i] = (double*)mallc(dataSize * sizeof(double));
+		buf[i] = (double*)malloc(dataSize * sizeof(double));
 		if(buf[i] == NULL){
 			*flag = -1;
 			return NULL;
@@ -58,6 +58,7 @@ static void shuffleRank(int n,int* a){
  */
 static int doCommunicate(MPI_Comm comm,int numprocs,int myid,int dataSize,double** sendbuf,double** recvbuf,double* timearr){
 	MPI_Request *sendreq,*recvreq;
+	MPI_Status status;
 	sendreq = (MPI_Request*)malloc(numprocs*sizeof(MPI_Request));
 	if(sendreq == NULL){
 		return -1;
@@ -90,7 +91,7 @@ static int doCommunicate(MPI_Comm comm,int numprocs,int myid,int dataSize,double
 		if(i2 != myid){
 			double t1 = timer();
 			MPI_Isend(sendbuf[i2],dataSize,MPI_DOUBLE,i2,0,comm,&sendreq[i2]);
-			MPI_Wait(&sendreq[i2],NULL);		
+			MPI_Wait(&sendreq[i2],&status);		
 			double t2 = timer();
 			timearr[i2] = getSpan(t1,t2);
 		}
@@ -101,7 +102,7 @@ static int doCommunicate(MPI_Comm comm,int numprocs,int myid,int dataSize,double
 
 	for(int i = 0; i < numprocs; i++){
 		if(i != myid){
-			MPI_Wait(&recvreq[i],NULL);
+			MPI_Wait(&recvreq[i],&status);
 		}
 	}
 	free(rank);
@@ -115,10 +116,9 @@ static int doCommunicate(MPI_Comm comm,int numprocs,int myid,int dataSize,double
  * if return value is -1, error occured
  * timearr[2*numproc] [average[numproc],variance[numproc]]
  */
-int calcDistance(MPI_Comm comm,int dataSize,int repTimes,double* timearr){
+int calcDistance(MPI_Comm comm,int dataSize,int repTimes,double** timearr){
 	int numprocs,myid;
 	int flag = 0;
-	double* timearr = NULL;
 	double* timearr_sub = NULL;
 	int end_stat = 0;
 	double** sendbuf = NULL;
@@ -132,8 +132,8 @@ int calcDistance(MPI_Comm comm,int dataSize,int repTimes,double* timearr){
 	MPI_Comm_rank(comm,&myid);
 	MPI_Comm_size(comm,&numprocs);
 
-	timearr = (double*)malloc(2*numprocs*sizeof(double));
-	if(timearr == NULL){
+	*timearr = (double*)malloc(2*numprocs*sizeof(double));
+	if(*timearr == NULL){
 		end_stat = -1;
 		goto fine;
 	}
@@ -154,7 +154,7 @@ int calcDistance(MPI_Comm comm,int dataSize,int repTimes,double* timearr){
 	}
 
 	for(int i = 0; i < 2*numprocs; i++){
-		timearr[i] = 0.0;
+		(*timearr)[i] = 0.0;
 	}
 	
 	for(int i = 0; i < repTimes; i++){
@@ -164,13 +164,14 @@ int calcDistance(MPI_Comm comm,int dataSize,int repTimes,double* timearr){
 			goto fine;
 		}
 		for(int j = 0; j < numprocs; j++){
-			timearr[j] += timearr_sub[j];
-			timearr[numprocs+j] += timearr_sub[j] * timearr_sub[j];
+			(*timearr)[j] += timearr_sub[j];
+			(*timearr)[numprocs+j] += timearr_sub[j] * timearr_sub[j];
 		}
 	}
 	for(int i = 0; i < numprocs; i++){
-		timearr[j] /= repTimes;
-		timearr[numprocs+j] = timearr[numprocs+j] / repTimes - timearr[j];
+		(*timearr)[i] /= repTimes;
+		(*timearr)[numprocs+i] = (*timearr)[numprocs+i] / repTimes - ((*timearr)[i] * (*timearr)[i]);
+		(*timearr)[numprocs+i] = sqrt((*timearr)[numprocs+i]);
 	}
 
 fine:

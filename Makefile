@@ -2,7 +2,7 @@ MAIN = main
 OBJS = main.o print.o distance.o split.o timer.o
 
 CC = mpicc
-CFLAGS = -O3 -xCORE-AVX2
+CFLAGS = -O3 -xCORE-AVX2 -std=c99 
 
 all: $(MAIN)
 
