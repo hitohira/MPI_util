@@ -216,7 +216,18 @@ fine:
 }
 
 static int doCommunicateP2P(MPI_Comm comm,int numprocs,int myid,int width,int dataSize,double** sendbuf,double** recvbuf,double* timearr){
-	//TODO
+	int blockNum = numprocs / width + (numprocs % width == 0 ? 0 : 1);
+	
+	for(int i = 1; i < numprocs; i++){
+		int dst = (myid + i) % numprocs;
+		int src = (myid - i + numprocs) % numprocs;
+		for(int bj = 0; bj < blockNum; bj++){
+			if(myid >= bj * width && myid < (bj+1) * width){
+				//TODO
+
+			}
+		}
+	}
 	return 0;
 }
 
