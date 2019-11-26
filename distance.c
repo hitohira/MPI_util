@@ -215,4 +215,86 @@ fine:
 	return end_stat;
 }
 
+static int doCommunicateP2P(MPI_Comm comm,int numprocs,int myid,int width,int dataSize,double** sendbuf,double** recvbuf,double* timearr){
+	//TODO
+	return 0;
+}
 
+int calcDistanceP2P(MPI_Comm comm,int width,int dataSize,int repTimes,double** timearr){
+	int numprocs,myid;
+	int flag = 0;
+	double* timearr_sub = NULL;
+	int end_stat = 0;
+	double** sendbuf = NULL;
+	double** recvbuf = NULL;
+
+	MPI_Initialized(&flag);
+	if(!flag){
+		return -1;
+	}
+
+	MPI_Comm_rank(comm,&myid);
+	MPI_Comm_size(comm,&numprocs);
+
+	*timearr = (double*)malloc(5*numprocs*sizeof(double));
+	if(*timearr == NULL){
+		end_stat = -1;
+		goto fine;
+	}
+	sendbuf = initBuf(numprocs,dataSize,&flag);
+	if(flag == -1) {
+		end_stat = -1;
+		goto fine;
+	}
+	recvbuf = initBuf(numprocs,dataSize,&flag);
+	if(flag == -1){
+		end_stat = -1;
+		goto fine;
+	}
+	timearr_sub = (double*)malloc(repTimes*numprocs * sizeof(double));
+	if(timearr_sub == NULL){
+		end_stat = -1;
+		goto fine;
+	}
+
+	for(int i = 0; i < numprocs; i++){
+		(*timearr)[i] = 0.0;
+		(*timearr)[numprocs+i] = 0.0;
+		(*timearr)[numprocs*2+i] = 1000000000.0;
+		(*timearr)[numprocs*3+i] = 0.0;
+		(*timearr)[numprocs*4+i] = 0.0;
+
+	}
+	
+	for(int i = 0; i < repTimes; i++){
+		flag = doCommunicateP2P(comm,numprocs,myid,width,dataSize,sendbuf,recvbuf,timearr_sub+i*numprocs);
+		if(flag == -1){
+			end_stat = -1;
+			goto fine;
+		}
+		for(int j = 0; j < numprocs; j++){
+			double val = timearr_sub[i*numprocs+j];
+			(*timearr)[j] += val;
+			(*timearr)[numprocs+j] += val * val;
+			(*timearr)[numprocs*2+j] = fmin((*timearr)[numprocs*2+j],val);
+			(*timearr)[numprocs*3+j] = fmax((*timearr)[numprocs*3+j],val);
+		}
+	}
+	for(int i = 0; i < numprocs; i++){
+		(*timearr)[i] /= repTimes;
+		(*timearr)[numprocs+i] = (*timearr)[numprocs+i] / repTimes - ((*timearr)[i] * (*timearr)[i]);
+		(*timearr)[numprocs+i] = sqrt((*timearr)[numprocs+i]);
+
+		(*timearr)[numprocs*4+i] = getMode(i,numprocs,repTimes,timearr_sub);
+		if((*timearr)[numprocs*4+i] < 0){
+			end_stat = -1;
+			goto fine;
+		}
+	}
+
+fine:
+	if(timearr_sub) free(timearr_sub);
+	freeBuf(numprocs,recvbuf);
+	freeBuf(numprocs,sendbuf);
+	return end_stat;
+}

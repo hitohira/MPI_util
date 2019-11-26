@@ -12,6 +12,7 @@ double getSpan(double t1,double t2);
 
 // distance.c
 int calcDistance(MPI_Comm comm,int dataSize,int repTimes,double** timearr);
+int calcDistanceP2P(MPI_Comm comm,int width,int dataSize,int repTimes,double** timearr);
 
 // split.c
 void nodeSplit(MPI_Comm comm,MPI_Comm* splited);
