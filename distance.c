@@ -215,23 +215,29 @@ fine:
 	return end_stat;
 }
 
-static int doCommunicateP2P(MPI_Comm comm,int numprocs,int myid,int width,int dataSize,double** sendbuf,double** recvbuf,double* timearr){
-	int blockNum = numprocs / width + (numprocs % width == 0 ? 0 : 1);
-	
-	for(int i = 1; i < numprocs; i++){
-		int dst = (myid + i) % numprocs;
-		int src = (myid - i + numprocs) % numprocs;
-		for(int bj = 0; bj < blockNum; bj++){
-			if(myid >= bj * width && myid < (bj+1) * width){
-				//TODO
+static int doCommunicateP2P(MPI_Comm comm,int numprocs,int myid,int dataSize,double** sendbuf,double** recvbuf,double* timearr){
+	MPI_Status status;
 
+	for(int i = 0;i < numprocs; i++){
+		for(int j = 0; j < numprocs; j++){
+			if(i != j){
+				MPI_Barrier(comm);
+				if(myid == i){
+					double t1 = timer();
+					MPI_Send(sendbuf[j],dataSize,MPI_DOUBLE,j,0,comm);
+					double t2 = timer();
+					timearr[j] = getSpan(t1,t2);
+				}
+				else if(myid == j){
+					MPI_Recv(recvbuf[i],dataSize,MPI_DOUBLE,i,0,comm);
+				}
 			}
 		}
 	}
 	return 0;
 }
 
-int calcDistanceP2P(MPI_Comm comm,int width,int dataSize,int repTimes,double** timearr){
+int calcDistanceP2P(MPI_Comm comm,int dataSize,int repTimes,double** timearr){
 	int numprocs,myid;
 	int flag = 0;
 	double* timearr_sub = NULL;
@@ -278,7 +284,7 @@ int calcDistanceP2P(MPI_Comm comm,int width,int dataSize,int repTimes,double** t
 	}
 	
 	for(int i = 0; i < repTimes; i++){
-		flag = doCommunicateP2P(comm,numprocs,myid,width,dataSize,sendbuf,recvbuf,timearr_sub+i*numprocs);
+		flag = doCommunicateP2P(comm,numprocs,myid,dataSize,sendbuf,recvbuf,timearr_sub+i*numprocs);
 		if(flag == -1){
 			end_stat = -1;
 			goto fine;

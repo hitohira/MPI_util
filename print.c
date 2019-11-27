@@ -31,7 +31,7 @@ void showDistInfo(MPI_Comm comm){
 	MPI_Comm_rank(comm,&myid);
 	MPI_Comm_size(comm,&numprocs);
 
-	err = calcDistance(comm,dataSize,repTimes,&timearr);
+	err = calcDistanceP2P(comm,dataSize,repTimes,&timearr);
 	if(err == -1){
 		fprintf(stderr,"calcDist error\n");
 		goto fine;

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #PBS -q TODO
-#PBS -l select=16:ncpus=32:mpiprocs=4:ompthreads=0
+#PBS -l select=16:ncpus=32:mpiprocs=1:ompthreads=0
 #PBS -W group_list=TODO
 #PBS -l walltime=00:30:00
 #PBS -o result.txt
@@ -9,4 +9,4 @@
 
 
 cd $PBS_O_WORKDIR
-mpiexec -np 64 ./main
+mpiexec -np 16 ./main
