@@ -229,7 +229,7 @@ static int doCommunicateP2P(MPI_Comm comm,int numprocs,int myid,int dataSize,dou
 					timearr[j] = getSpan(t1,t2);
 				}
 				else if(myid == j){
-					MPI_Recv(recvbuf[i],dataSize,MPI_DOUBLE,i,0,comm);
+					MPI_Recv(recvbuf[i],dataSize,MPI_DOUBLE,i,0,comm,&status);
 				}
 			}
 		}
