@@ -26,9 +26,50 @@ static int factorize(int n,int** res){
 	}
 }
 
+void swap(int* a,int* b){
+	int tmp = *a;
+	*a = *b;
+	*b = tmp;
+}
+void rev(int* b,int* e){
+	if(b == e) return;
+	e--;
+	while(b < e){
+		swap(b,e);
+		b++;
+		e--;
+	}
+}
+
+// a should be sorted at first call.
+int next_permutation(int* begin,int* end){
+	if(begin == end) return 0;
+	int *i = begin;
+	++i;
+	if(i == end) return 0;
+	i = end;
+	i--;
+	while(1){
+		int* j = i;
+		--i;
+		if(*i < *j){
+			int* k = end;
+			while(!(*i < *--k)) ;
+			swap(i,k);
+			rev(j,end);
+			return 1;
+		}
+		if(i == begin){
+			rev(begin,end);
+			return 0;
+		}
+	}
+}
+
 void get_dims(int n,int ndims,const int global[],int local[]){
 	int* primes = NULL;
 	int len = factorize(n,&primes);
+	int* work = (int*)malloc(len*sizeof(int));
 
 	// TODO
 }
