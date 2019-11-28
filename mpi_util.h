@@ -19,6 +19,9 @@ void nodeSplit(MPI_Comm comm,MPI_Comm* splited);
 int gatherSplitInfoTo0(MPI_Comm comm,MPI_Comm splited,int** info);
 
 // print.c
-void showDistInfo(MPI_Comm);
+void showDistInfo(MPI_Comm comm);
+
+// pingpong.c
+void ping_pong(MPI_Comm comm,int dataSize,int repTimes,int width);
 
 #endif
