@@ -66,12 +66,67 @@ int next_permutation(int* begin,int* end){
 	}
 }
 
-void get_dims(int n,int ndims,const int global[],int local[]){
+int calcS(int n,int dim){
+	int sm = 0;
+	for(int i = 0; i < n; i++){
+		int t = 1;
+		for(int j = 0; j < n; j++){
+			if(i != j){
+				t *= dim[j];
+			}
+		}
+		sm += t;
+	}
+	return t;
+}
+
+static void get_inner_dims(int n,int ndims,const int global[],int local[]){
 	int* primes = NULL;
 	int len = factorize(n,&primes);
-	int* work = (int*)malloc(len*sizeof(int));
+	int workSize = len + ndims - 1;
+	int* work = (int*)realloc(primes,workSize*sizeof(int));
+	int* dim = (int*)malloc(ndims*sizeof(int));
 
-	// TODO
+	const int sep = 1e9;
+	for(int i = len; i < workSize; i++){
+		work[i] = sep;
+	}
+
+	int minS = sep;
+
+	do{
+		for(int i = 0; i < ndims; i++){
+			dim[i] = 1;
+		}
+		int k = 0;
+		for(int i = 0; i < workSize; i++){
+			if(work[i] == sep){
+				k++;
+			}
+			else{
+				dim[k] *= work[i];
+			}
+		}
+		
+		int ok = 1;
+		for(int i = 0; i < ndims; i++){
+			if(global[i] % dim[i] != 0){
+				ok = 0;
+			}
+		}
+		if(!ok) continue;
+
+		int s = calcS(ndims,dim);
+		if(s < minS){
+			minS = s;
+			for(int i = 0; i < ndims; i++){
+				local[i] = dim[i];
+			}
+		}
+	}while(next_permutation(work,work+workSize));
+
+	free(work);
+	free(dim);
 }
 
 int cart_create(MPI_Comm comm_old,int ndims,const int dims[],MPI_Comm* comm_cart){
@@ -98,7 +153,7 @@ int cart_create(MPI_Comm comm_old,int ndims,const int dims[],MPI_Comm* comm_cart
 		goto fine;
 	}
 
-	get_dims(lSize,ndims,dims,local);
+	get_inner_dims(lSize,ndims,dims,local);
 
 	// TODO reorder
 
