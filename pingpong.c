@@ -11,6 +11,17 @@ static double measeure_comm(MPI_Comm comm,int myid,int numprocs,int dataSize,int
 	MPI_Barrier(comm);
 	int dt = numprocs / 2;
 	double t1 = timer();
+	MPI_Bcast(sendbuf,dataSize,MPI_DOUBLE,0,comm);
+	MPI_Barrier(comm);
+	double t2 = timer();
+	return getSpan(t1,t2);
+}
+
+static double measeure_comm2(MPI_Comm comm,int myid,int numprocs,int dataSize,int width,double* sendbuf,double* recvbuf){
+	MPI_Status status;
+	MPI_Barrier(comm);
+	int dt = numprocs / 2;
+	double t1 = timer();
 	if(myid < width){
 		//MPI_Send(sendbuf,dataSize,MPI_DOUBLE,myid+width,0,comm);
 		MPI_Send(sendbuf,dataSize,MPI_DOUBLE,myid+dt,0,comm);

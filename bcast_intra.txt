@@ -1,0 +1,18 @@
+data size = 2097152 B
+# proc = 4
+width = 1
+	ave	SD	min	max	mode
+	0.00047	0.00000	0.00047	0.00048	0.00047
+Total time : 0.04970 s
+data size = 2097152 B
+# proc = 8
+width = 1
+	ave	SD	min	max	mode
+	0.00079	0.00000	0.00078	0.00080	0.00079
+Total time : 0.08126 s
+data size = 2097152 B
+# proc = 16
+width = 1
+	ave	SD	min	max	mode
+	0.00075	0.00009	0.00072	0.00134	0.00073
+Total time : 0.07794 s

@@ -12,10 +12,11 @@ int main(int argc,char** argv){
 	int repTimes = 100;
 	
 	double t1 = timer();
-	for(int width = 1; width <= numprocs / 2; width++){
+//	for(int width = 1; width <= numprocs / 2; width++){
 //	showDistInfo(MPI_COMM_WORLD);
-		ping_pong(MPI_COMM_WORLD,dataSize,repTimes,width);
-	}
+//		ping_pong(MPI_COMM_WORLD,dataSize,repTimes,width);
+//	}
+	ping_pong(MPI_COMM_WORLD,dataSize,repTimes,1);
 	double t2 = timer();
 
 	if(myid == 0){
