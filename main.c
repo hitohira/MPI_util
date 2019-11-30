@@ -14,7 +14,7 @@ int main(int argc,char** argv){
 	double t1 = timer();
 	for(int width = 1; width <= numprocs / 2; width++){
 //	showDistInfo(MPI_COMM_WORLD);
-		ping_pong(comm,dataSize,repTimes,width);
+		ping_pong(MPI_COMM_WORLD,dataSize,repTimes,width);
 	}
 	double t2 = timer();
 

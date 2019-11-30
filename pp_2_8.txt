@@ -1,0 +1,41 @@
+data size = 2097152 B
+# proc = 16
+width = 1
+	ave	SD	min	max	mode
+	0.00020	0.00000	0.00020	0.00021	0.00020
+data size = 2097152 B
+# proc = 16
+width = 2
+	ave	SD	min	max	mode
+	0.00035	0.00000	0.00035	0.00036	0.00035
+data size = 2097152 B
+# proc = 16
+width = 3
+	ave	SD	min	max	mode
+	0.00052	0.00000	0.00052	0.00052	0.00052
+data size = 2097152 B
+# proc = 16
+width = 4
+	ave	SD	min	max	mode
+	0.00069	0.00000	0.00069	0.00069	0.00069
+data size = 2097152 B
+# proc = 16
+width = 5
+	ave	SD	min	max	mode
+	0.00086	0.00000	0.00086	0.00086	0.00086
+data size = 2097152 B
+# proc = 16
+width = 6
+	ave	SD	min	max	mode
+	0.00103	0.00000	0.00103	0.00103	0.00103
+data size = 2097152 B
+# proc = 16
+width = 7
+	ave	SD	min	max	mode
+	0.00120	0.00000	0.00120	0.00120	0.00120
+data size = 2097152 B
+# proc = 16
+width = 8
+	ave	SD	min	max	mode
+	0.00137	0.00000	0.00137	0.00137	0.00137
+Total time : 0.64068 s
