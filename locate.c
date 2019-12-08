@@ -129,15 +129,46 @@ static void get_inner_dims(int n,int ndims,const int global[],int local[]){
 	free(dim);
 }
 
+static void get_global_coord(int ndims,int nodeId,int localId,int* global,int* local,int** coord){
+	*coord = (int*)malloc(ndims*sizeof(int));
+	if(ndims == 2){
+		int width = global[1] / local[1];
+		*(coord[0]) = (nodeId / width) * local[0] + localId / local[1];
+		*(coord[1]) = (nodeId % width) * local[1] + localId % local[1];
+	}
+	else if(ndims == 3){
+		int width = global[1] / local[1];
+		int height = global[0] / local[0];
+		int area = width * height;
+		*(coord[2]) = nodeId / area * local[2] + localId / (local[0] * local[1]);
+		int snodeId = nodeId % area;
+		int slocalId = localId % (local[0] * local[1]);
+		*(coord[0]) = snodeId / width * local[0] + slocalId / local[1];
+		*(coord[1]) = snodeId % width * local[1] + slocalId % local[1];
+	}
+}
+
+static int get_global_rank(int ndims,int* global,int* coord){
+	int rank = 0;
+	for(int i = ndims-1; i >= 0; i--){
+		int area = 1;
+		for(int j = 0; j < i; j++){
+			area *= global[j];
+		}
+		rank += area * coord[i];
+	}
+	return rank;
+}
+
 int cart_create(MPI_Comm comm_old,int ndims,const int dims[],MPI_Comm* comm_cart){
 	int end_stat = 0;
-	int gSize,gId,lSize,lId;
+	int gSize,gId,lSize,lId,nodeId;
 	MPI_Comm splited;
 	int* info = NULL;
 	int* local = NULL;
 
 	nodeSplit(comm_old,&splited);
-	end_stat = gatherSplitInfoTo0(comm_old,splited,&info);
+	end_stat = gatherSplitInfo(comm_old,splited,&info);
 	if(end_stat == -1){
 		goto fine;
 	}
@@ -146,6 +177,8 @@ int cart_create(MPI_Comm comm_old,int ndims,const int dims[],MPI_Comm* comm_cart
 	MPI_Comm_rank(comm_old,&gId);
 	MPI_Comm_size(splited,&lSize);
 	MPI_Comm_rank(splited.&lId);
+
+	nodeId = info[gId];
 
 	local = (int*)malloc(ndims*sizeof(int));
 	if(local == NULL){
