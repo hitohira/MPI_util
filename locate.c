@@ -26,7 +26,7 @@ static int factorize(int n,int** res){
 	}
 }
 
-void swap(int* a,int* b){
+static void swap(int* a,int* b){
 	int tmp = *a;
 	*a = *b;
 	*b = tmp;
@@ -160,12 +160,13 @@ static int get_global_rank(int ndims,int* global,int* coord){
 	return rank;
 }
 
-int cart_create(MPI_Comm comm_old,int ndims,const int dims[],MPI_Comm* comm_cart){
+int MPIMY_Cart_create(MPI_Comm comm_old,int ndims,int dims[],int periods,MPI_Comm* comm_cart){
 	int end_stat = 0;
 	int gSize,gId,lSize,lId,nodeId;
 	MPI_Comm splited;
 	int* info = NULL;
 	int* local = NULL;
+	int* coord = NULL;
 
 	nodeSplit(comm_old,&splited);
 	end_stat = gatherSplitInfo(comm_old,splited,&info);
@@ -188,10 +189,16 @@ int cart_create(MPI_Comm comm_old,int ndims,const int dims[],MPI_Comm* comm_cart
 
 	get_inner_dims(lSize,ndims,dims,local);
 
-	// TODO reorder
+	get_global_coord(ndims,nodeId,lId,dims,local,&coord);
+	int new_rank = get_global_rank(ndims,dims,coord);
+
+	MPI_Comm comm_new;
+	MPI_Comm_split(comm_old,0,new_rank,&comm_new);
+	MPI_Cart_create(comm_new,ndims,dims,periods,0,comm_cart);
 
 fine:
 	if(info) free(info);
 	if(local) free(local);
+	if(coord) free(coord);
 	return end_stat;
 }
