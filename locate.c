@@ -234,7 +234,7 @@ int MPIMY_Cart_create(MPI_Comm comm_old,int ndims,int dims[],int periods[],MPI_C
 
 	MPI_Comm comm_new;
 	MPI_Comm_split(comm_old,0,new_rank,&comm_new);
-	MPI_Cart_create(comm_new,ndims,dims,periods,0,comm_cart);
+	end_stat = MPI_Cart_create(comm_new,ndims,dims,periods,0,comm_cart);
 
 fine:
 	if(info) free(info);
