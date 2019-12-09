@@ -16,8 +16,17 @@ int main(int argc,char** argv){
 //	showDistInfo(MPI_COMM_WORLD);
 //		ping_pong(MPI_COMM_WORLD,dataSize,repTimes,width);
 //	}
-	ping_pong(MPI_COMM_WORLD,dataSize,repTimes,1);
+//	ping_pong(MPI_COMM_WORLD,dataSize,repTimes,1);
+
+	MPI_Comm comm_cart;
+	int dims[3] = {2,24,2};
+	int period[3] = {0,0,0};
+	MPIMY_Cart_create(MPI_COMM_WORLD,3,dims,period,&comm_cart);
 	double t2 = timer();
+
+	int rank;
+	MPI_Comm_rank(comm_cart,&rank);
+	printf("%d\t%d\n",myid,rank);
 
 	if(myid == 0){
 		printf("Total time : %.5f s\n",getSpan(t1,t2));

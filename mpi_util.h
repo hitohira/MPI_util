@@ -26,6 +26,6 @@ void showDistInfo(MPI_Comm comm);
 void ping_pong(MPI_Comm comm,int dataSize,int repTimes,int width);
 
 // locate.c
-int MPIMY_Cart_create(MPI_Comm comm_old,int ndims,int dims,int periods,MPI_Comm* comm_cart);
+int MPIMY_Cart_create(MPI_Comm comm_old,int ndims,int dims[],int periods[],MPI_Comm* comm_cart);
 
 #endif

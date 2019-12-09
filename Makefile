@@ -1,5 +1,5 @@
 MAIN = main
-OBJS = main.o print.o distance.o split.o timer.o pingpong.o
+OBJS = main.o print.o distance.o split.o timer.o pingpong.o locate.o
 
 CC = mpicc
 CFLAGS = -O3 -xCORE-AVX2 -std=c99 
