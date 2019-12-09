@@ -140,26 +140,14 @@ static void get_global_coord(int ndims,int nodeId,int localId,int* global,int* l
 		(*coord)[1] = (nodeId % width) * local[1] + localId % local[1];
 	}
 	else if(ndims == 3){
-		if(localId == 0 && nodeId == 0){
-			printf("come\n");
-		}
 		int width = global[1] / local[1];
 		int height = global[0] / local[0];
 		int area = width * height;
 		(*coord)[2] = nodeId / area * local[2] + localId / (local[0] * local[1]);
-		if(localId == 0 && nodeId == 0){
-			printf("come\n");
-		}
 		int snodeId = nodeId % area;
 		int slocalId = localId % (local[0] * local[1]);
-		if(localId == 0 && nodeId == 0){
-			printf("come\n");
-		}
 		(*coord)[0] = snodeId / width * local[0] + slocalId / local[1];
 		(*coord)[1] = snodeId % width * local[1] + slocalId % local[1];
-		if(localId == 0 && nodeId == 0){
-			printf("come\n");
-		}
 	}
 }
 
@@ -217,6 +205,76 @@ int MPIMY_Cart_create(MPI_Comm comm_old,int ndims,int dims[],int periods[],MPI_C
 		end_stat = -1;
 		goto fine;
 	}
+	for(int i = 0; i < ndims; i++){
+		if(gId == 0){
+			printf("dim %d %d\n",i,local[i]);
+		}
+	}
+	get_global_coord(ndims,nodeId,lId,dims,local,&coord);
+	if(coord == NULL){
+		end_stat = -1;
+		goto fine;
+	}
+	int new_rank = get_global_rank(ndims,dims,coord);
+
+	MPI_Comm comm_new;
+	MPI_Comm_split(comm_old,0,new_rank,&comm_new);
+	end_stat = MPI_Cart_create(comm_new,ndims,dims,periods,0,comm_cart);
+
+fine:
+	if(info) free(info);
+	if(local) free(local);
+	if(coord) free(coord);
+	return end_stat;
+}
+
+int MPIMY_Cart_create2(MPI_Comm comm_old,int ndims,int dims[],int periods[],MPI_Comm* comm_cart){
+	int end_stat = 0;
+	int gSize,gId,lSize,lId,nodeId;
+	MPI_Comm splited;
+	int* info = NULL;
+	int* local = NULL;
+	int* coord = NULL;
+
+	if(ndims != 3){
+		return -1;
+	}
+
+	nodeSplit(comm_old,&splited);
+	end_stat = gatherSplitInfo(comm_old,splited,&info);
+	if(end_stat == -1){
+		goto fine;
+	}
+	
+	MPI_Comm_size(comm_old,&gSize);
+	MPI_Comm_rank(comm_old,&gId);
+	MPI_Comm_size(splited,&lSize);
+	MPI_Comm_rank(splited,&lId);
+	
+	int numP = 1;
+	for(int i = 0; i < ndims; i++){
+		numP *= dims[i];
+	}
+	if(gSize != numP){
+		end_stat = -1;
+		printf("wrong num\n");
+		goto fine;
+	}
+
+	nodeId = info[gId];
+
+	local = (int*)malloc(ndims*sizeof(int));
+	if(local == NULL){
+		end_stat = -1;
+		goto fine;
+	}
+
+	get_inner_dims(lSize,2,dims,local);
+	if(local == NULL){
+		end_stat = -1;
+		goto fine;
+	}
+	local[2] = 1;
 	for(int i = 0; i < ndims; i++){
 		if(gId == 0){
 			printf("dim %d %d\n",i,local[i]);
