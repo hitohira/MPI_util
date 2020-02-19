@@ -88,3 +88,46 @@ int gatherSplitInfo(MPI_Comm comm,MPI_Comm splited,int** info){
 	if(localBuf) free(localBuf);
 	return 0;
 }
+
+int gatherSplitInfo_extra(MPI_Comm comm,MPI_Comm splited,int** info){
+	int globalRank,localRank;
+	int globalSize,localSize;
+	int* localBuf = NULL;
+	MPI_Status status;
+
+	MPI_Comm_rank(comm,&globalRank);
+	MPI_Comm_size(comm,&globalSize);
+	MPI_Comm_rank(splited,&localRank);
+	MPI_Comm_size(splited,&localSize);
+
+	*info = (int*)malloc(globalSize*sizeof(int));
+	localBuf = (int*)malloc(localSize*sizeof(int));
+
+	if(*info == NULL || localBuf == NULL){
+		if(localBuf) free(localBuf);
+		return -1;
+	}
+	
+	int cntr = 0;
+	int idx = 0;
+	for(int i = 0; i < globalSize; i++){
+		(*info)[i] = idx;
+
+		cntr++;
+		if(cntr == localSize){
+			cntr = 0;
+			idx++;
+		}
+	}
+
+	/*
+	if(globalRank == 0){
+		for(int i = 0; i < globalSize; i++){
+			printf("%d\n",(*info)[i]);
+		}
+	}
+	*/
+	
+	if(localBuf) free(localBuf);
+	return 0;
+}

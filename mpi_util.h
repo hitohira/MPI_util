@@ -18,6 +18,7 @@ int calcDistanceP2P(MPI_Comm comm,int dataSize,int repTimes,double** timearr);
 void nodeSplit(MPI_Comm comm,MPI_Comm* splited);
 int gatherSplitInfoTo0(MPI_Comm comm,MPI_Comm splited,int** info);
 int gatherSplitInfo(MPI_Comm comm,MPI_Comm splited,int** info);
+int gatherSplitInfo_extra(MPI_Comm comm,MPI_Comm splited,int** info);
 
 // print.c
 void showDistInfo(MPI_Comm comm);
@@ -26,7 +27,9 @@ void showDistInfo(MPI_Comm comm);
 void ping_pong(MPI_Comm comm,int dataSize,int repTimes,int width);
 
 // locate.c
+void get_inner_dims(int,int,const int[],int[]);
 int MPIMY_Cart_create(MPI_Comm comm_old,int ndims,int dims[],int periods[],MPI_Comm* comm_cart);
 int MPIMY_Cart_create2(MPI_Comm comm_old,int ndims,int dims[],int periods[],MPI_Comm* comm_cart);
+int MPIMY_Cart_create_extra(MPI_Comm comm_old,int ndims,int dims[],int periods[],MPI_Comm* comm_cart);
 
 #endif

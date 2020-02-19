@@ -9,7 +9,6 @@ static int cmp(const void* a,const void* b){
 static double measeure_comm(MPI_Comm comm,int myid,int numprocs,int dataSize,int width,double* sendbuf,double* recvbuf){
 	MPI_Status status;
 	MPI_Barrier(comm);
-	int dt = numprocs / 2;
 	double t1 = timer();
 	MPI_Bcast(sendbuf,dataSize,MPI_DOUBLE,0,comm);
 	MPI_Barrier(comm);
@@ -31,9 +30,14 @@ static double measeure_comm2(MPI_Comm comm,int myid,int numprocs,int dataSize,in
 		//MPI_Recv(recvbuf,dataSize,MPI_DOUBLE,myid-width,0,comm,&status);
 		MPI_Recv(recvbuf,dataSize,MPI_DOUBLE,myid-dt,0,comm,&status);
 	}
+	//double t2 = timer();
 	MPI_Barrier(comm);
 	double t2 = timer();
 	return getSpan(t1,t2);
+//	double x = getSpan(t1,t2);
+//	double y;
+//	MPI_Reduce(&x,&y,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
+//	return y;
 }
 
 void ping_pong(MPI_Comm comm,int dataSize,int repTimes,int width){
@@ -65,7 +69,7 @@ void ping_pong(MPI_Comm comm,int dataSize,int repTimes,int width){
 	double md = 0;
 	measeure_comm(comm,myid,numprocs,dataSize,width,sendbuf,recvbuf);
 	for(int i = 0; i < repTimes; i++){
-		timearr[i] = measeure_comm(comm,myid,numprocs,dataSize,width,sendbuf,recvbuf);
+		timearr[i] = measeure_comm2(comm,myid,numprocs,dataSize,width,sendbuf,recvbuf);
 		ave += timearr[i];
 		sd += timearr[i] * timearr[i];
 	}
@@ -79,7 +83,7 @@ void ping_pong(MPI_Comm comm,int dataSize,int repTimes,int width){
 	if(myid == 0){
 		printf("data size = %d B\n# proc = %d\nwidth = %d\n",dataSize*sizeof(double),numprocs,width);
 		printf("\tave\tSD\tmin\tmax\tmode\n");
-		printf("\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\n",ave,sd,mn,mx,md);
+		printf("\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f us\n",ave*1e6,sd*1e6,mn*1e6,mx*1e6,md*1e6);
 	}
 
 fine:
